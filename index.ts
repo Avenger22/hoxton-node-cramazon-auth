@@ -42,7 +42,7 @@ app.post('/login', async (req, res) => {
 
   try {
 
-    const user = await prisma.user.findUnique({ where: { email: email }, include: { transactions: true, photos: true } })
+    const user = await prisma.user.findUnique({ where: { email: email }, include: { items: true } })
     
     // @ts-ignore
     const passwordMatches = bcrypt.compareSync(password, user.password)
@@ -93,7 +93,8 @@ app.get('/users', async (req, res) => {
       select: {
         id: true,
         email: true,
-        name: true,
+        fullName: true,
+        password: true,
         items: { 
           include: { item: true } 
         } 
@@ -122,7 +123,8 @@ app.get('/users/:id', async (req, res) => {
       select: {
         id: true,
         email: true,
-        name: true,
+        fullName: true,
+        password: true,
         items: { 
           include: { item: true } 
         }
@@ -148,7 +150,7 @@ app.get('/users/:id', async (req, res) => {
 
 app.post('/users', async (req, res) => {
     
-  const { email, name, password } = req.body
+  const { email, fullName, password, userName } = req.body
   
   try {
 
@@ -157,7 +159,8 @@ app.post('/users', async (req, res) => {
 
     const newUser = {
       email: email, 
-      name: name
+      fullName: fullName,
+      password: hashedPassword
     }
 
     const userCheck = await prisma.user.findFirst({ where: { email: newUser.email } })
@@ -227,11 +230,14 @@ app.delete('/users/:id', async (req, res) => {
 app.patch('/users/:id', async (req, res) => {
 
   const idParam = req.params.id;
-  const { email, name } = req.body
+  const { email, fullName, password } = req.body
+
+  const hashedPassword = bcrypt.hashSync(password, 8)
 
   const userData = {
     email: email,
-    name: name
+    fullName: fullName,
+    password: hashedPassword
   }
 
   try {
@@ -258,7 +264,7 @@ app.patch('/users/:id', async (req, res) => {
 app.get('/orders', async (req, res) => {
 
   try {
-    const orders = await prisma.order.findMany()
+    const orders = await prisma.order.findMany( { include : {user: true, item: true} } )
     res.send(orders)
   }
 
@@ -276,7 +282,8 @@ app.get('/orders/:id', async (req, res) => {
   try {
 
     const order = await prisma.order.findFirst({
-      where: { id: idParam }
+      where: { id: idParam },
+      include : {user: true, item: true}
     })
 
     if (order) {
@@ -413,8 +420,12 @@ app.get('/items', async (req, res) => {
     const items = await prisma.item.findMany({
       select: {
         id: true,
-        title: true,
+        name: true,
+        price: true,
         image: true,
+        stock: true,
+        type: true,
+        description: true,
         users: { 
           include: { user: true } 
         }
@@ -442,8 +453,12 @@ app.get('/items/:id', async (req, res) => {
       where: { id: idParam },
       select: {
         id: true,
-        title: true,
+        name: true,
+        price: true,
         image: true,
+        stock: true,
+        type: true,
+        description: true,
         users: { 
           include: { user: true } 
         }
@@ -470,17 +485,21 @@ app.get('/items/:id', async (req, res) => {
 app.post('/items', async (req, res) => {
     
   const token = req.headers.authorization || ''
-  const { title, image } = req.body
+  const { name, price, image, stock, type, description } = req.body
   
   const newItem = {
-    title: title, 
-    image: image
+    name:  name,
+    price: price, 
+    image: image,
+    stock: stock,
+    type: type,
+    description: description
   }
 
   try {
 
     const user = await getUserFromToken(token)
-    const itemCheck = await prisma.item.findFirst({ where: { title: newItem.title } })
+    const itemCheck = await prisma.item.findFirst({ where: { name: newItem.name } })
     
     if (itemCheck) {
       res.status(404).send({ error: 'item has an already registered name try different name.' })
@@ -547,11 +566,15 @@ app.delete('/items/:id', async (req, res) => {
 app.patch('/items/:id', async (req, res) => {
 
   const idParam = req.params.id;
-  const { title, image} = req.body
+  const { name, price, image, stock, type, description } = req.body
   
   const itemData = {
-    title: title,
-    image: image
+    name:  name,
+    price: price, 
+    image: image,
+    stock: stock,
+    type: type,
+    description: description
   }
 
   try {

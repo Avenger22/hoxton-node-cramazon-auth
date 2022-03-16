@@ -13,15 +13,14 @@ datasource db {
 model User {
   id          Int           @id @default(autoincrement())
   email       String        @unique
-  name        String
+  fullName    String
+  password    String
   items       Order[]
 }
 
 model Order {
   id      Int     @id @default(autoincrement())
   quantity Int    @default(0)
-  dateCreated DateTime @default(now())
-  paymentMethod String @default("online")
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId  Int
   item    Item    @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -29,9 +28,12 @@ model Order {
 }
 
 model Item {
-  id          Int           @id @default(autoincrement())
-  title       String        @unique
-  image       String
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
   price       Float        @default(0.00)
+  image       String
+  stock       Int
+  type        String 
+  description String
   users       Order[]
 }
