@@ -15,7 +15,7 @@ model User {
   email       String        @unique
   fullName    String
   password    String
-  items       Order[]
+  orders       Order[]
 }
 
 model Order {
@@ -35,5 +35,5 @@ model Item {
   stock       Int
   type        String 
   description String
-  users       Order[]
+  orders       Order[]
 }

@@ -28,7 +28,7 @@ async function getUserFromToken (token: string) {
   const decodedData = jwt.verify(token, process.env.MY_SECRET)
   
   // @ts-ignore
-  const user = await prisma.user.findUnique({ where: { id: decodedData.id }, include: { items: { include: { item: true } } }})
+  const user = await prisma.user.findUnique({ where: { id: decodedData.id }, include: { orders: { include: { item: true } } }})
   return user
 
 }
@@ -42,7 +42,7 @@ app.post('/login', async (req, res) => {
 
   try {
 
-    const user = await prisma.user.findUnique({ where: { email: email }, include: { items: true } })
+    const user = await prisma.user.findUnique({ where: { email: email }, include: { orders: { include: {item: true} } } })
     
     // @ts-ignore
     const passwordMatches = bcrypt.compareSync(password, user.password)
@@ -95,7 +95,7 @@ app.get('/users', async (req, res) => {
         email: true,
         fullName: true,
         password: true,
-        items: { 
+        orders: { 
           include: { item: true } 
         } 
       }
@@ -125,7 +125,7 @@ app.get('/users/:id', async (req, res) => {
         email: true,
         fullName: true,
         password: true,
-        items: { 
+        orders: { 
           include: { item: true } 
         }
       }
@@ -449,7 +449,7 @@ app.get('/items', async (req, res) => {
         stock: true,
         type: true,
         description: true,
-        users: { 
+        orders: { 
           include: { user: true } 
         }
       }
@@ -482,7 +482,7 @@ app.get('/items/:id', async (req, res) => {
         stock: true,
         type: true,
         description: true,
-        users: { 
+        orders: { 
           include: { user: true } 
         }
       }
