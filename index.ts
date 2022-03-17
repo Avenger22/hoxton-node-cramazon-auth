@@ -28,7 +28,7 @@ async function getUserFromToken (token: string) {
   const decodedData = jwt.verify(token, process.env.MY_SECRET)
   
   // @ts-ignore
-  const user = await prisma.user.findUnique({ where: { id: decodedData.id } })
+  const user = await prisma.user.findUnique({ where: { id: decodedData.id }, include: { items: { include: { item: true } } }})
   return user
 
 }
@@ -65,7 +65,7 @@ app.post('/login', async (req, res) => {
 
 app.get('/validate', async (req, res) => {
 
-  const token = req.headers.authorization
+  const token = req.headers.authorization || ''
 
   try {
     // @ts-ignore
@@ -383,7 +383,8 @@ app.delete('/orders/:id', async (req, res) => {
 
 app.patch('/orders/:id', async (req, res) => {
 
-  const idParam = req.params.id;
+  const token = req.headers.authorization || ''
+  const idParam = Number(req.params.id)
   const { quantity, userId, itemId } = req.body
 
   const orderData = {
@@ -394,14 +395,36 @@ app.patch('/orders/:id', async (req, res) => {
 
   try {
 
-    const order = await prisma.order.update({
-      where: {
-        id: Number(idParam),
-      },
-      data: orderData
-    })
+    const user = await getUserFromToken(token)
+    
+    const orderMatch = await prisma.order.findFirst( { where: {id: idParam} } )
+    //@ts-ignore
+    const belongsToUser = orderMatch.userId === user.id
+    
+    if (user && belongsToUser) {
 
-    res.send(order)
+      try {
+
+        const order = await prisma.order.update({
+          where: {
+            id: user.id,
+          },
+          data: orderData
+        })
+
+        res.send(order)
+
+      }
+
+      catch(error) {
+        res.status(404).send({message: error})
+      }
+
+    }
+
+    else {
+      throw Error('Error!')
+    }
 
   } 
   
@@ -565,6 +588,7 @@ app.delete('/items/:id', async (req, res) => {
 
 app.patch('/items/:id', async (req, res) => {
 
+  const token = req.headers.authorization || ''
   const idParam = req.params.id;
   const { name, price, image, stock, type, description } = req.body
   
@@ -579,14 +603,32 @@ app.patch('/items/:id', async (req, res) => {
 
   try {
 
-    const item = await prisma.item.update({
-      where: {
-        id: Number(idParam),
-      },
-      data: itemData
-    })
+    const user = await getUserFromToken(token)
 
-    res.send(item)
+    if (user) {
+
+      try {
+
+        const item = await prisma.item.update({
+          where: {
+            id: Number(idParam),
+          },
+          data: itemData
+        })
+
+        res.send(item)
+
+      }
+
+      catch(error) {
+        res.status(404).send({message: error})
+      }
+
+    }
+
+    else {
+      throw Error("Boom")
+    }
 
   } 
   
