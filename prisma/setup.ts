@@ -79,7 +79,7 @@ const items = [
     id: 2,
     name: "Artichoke Premium",
     price: 10,
-    image: "/assets/images/animal-pak-powder.png",
+    image: "/assets/images/artichoke-premium.jpg",
     stock: 5,
     type: "multivitamins",
     description: "Artichoke Premium is a supplement containing high quality artichoke extracts with 5% standardized cinnar content.Research has shown that the extract of artichoke leaves:Helps in detoxification"
@@ -88,7 +88,7 @@ const items = [
     id: 3,
     name: "Argi Power 1500 Mega Caps",
     price: 30.5,
-    image: "/assets/images/animal-pak-powder.png",
+    image: "/assets/images/argi-power.jpg",
     stock: 5,
     type: "aminoacids",
     description: "Argi Power 1500 Mega Caps, mega capsules contain 1500 mg L-Arginine with the highest pharmaceutical quality in one capsule. How does L-Arginine HCl work and what is it used for? L-arginine is a dietary supplement that participates in many processes of formation of substances in the body: eg nitric oxide. Furthermore it provides the formamide group that serves in creatine biosynthesis."
@@ -97,7 +97,7 @@ const items = [
     id: 4,
     name: "Beta-Alanine Xplode Powder",
     price: 28,
-    image: "/assets/images/animal-pak-powder.png",
+    image: "/assets/images/beta-alaine.jpg",
     stock: 5,
     type: "aminoacids",
     description: "Beta-Alanine Xplode Powder supplement is a preparation in the form of a powder with perfect solubility, which contains very high quality Beta-Alanine, enriched with vitamin B6 and L-Histidine."

@@ -194,15 +194,13 @@ app.post('/users', async (req, res) => {
 
 app.delete('/users/:id', async (req, res) => {
 
+  const token = req.headers.authorization || ''
   const idParam = req.params.id
 
   try {
 
-    const user = await prisma.user.findFirst({
-      where: {
-        id: Number(idParam)
-      }
-    })
+    // check that they are signed in
+    const user = await getUserFromToken(token)
 
     if (user) {
 
@@ -210,7 +208,7 @@ app.delete('/users/:id', async (req, res) => {
         where: { id: Number(idParam) }
       })
 
-      res.send({ message: 'user deleted.' })
+      res.send(user)
 
     }
 
@@ -348,28 +346,33 @@ app.post('/orders', async (req, res) => {
 
 app.delete('/orders/:id', async (req, res) => {
 
+  const token = req.headers.authorization || ''
   const idParam = req.params.id
 
   try {
 
-    const order = await prisma.order.findFirst({
-      where: {
-        id: Number(idParam)
-      }
-    })
+    // check that they are signed in
+    const user = await getUserFromToken(token)
+    const order = await prisma.order.findUnique( { where: {id: Number(idParam)} } )
 
-    if (order) {
+    //@ts-ignore
+    const orderUserCheck = order.userId === user.id
 
-      await prisma.order.delete({ 
+    if (user && orderUserCheck) {
+
+      const orderDeleted = await prisma.order.delete({ 
         where: { id: Number(idParam) }
       })
 
-      res.send({ message: 'order deleted.' })
+      const orders = await prisma.order.findMany( { where: { userId: user.id } } )
+
+      // res.send(orderDeleted)
+      res.send(orders)
 
     }
 
     else {
-      res.status(404).send({ error: 'order not found.' })
+      res.status(404).send({ error: 'order not found, or the order doesnt belong to that user to be deleted.' })
     }
 
   }
@@ -553,28 +556,41 @@ app.post('/items', async (req, res) => {
 
 app.delete('/items/:id', async (req, res) => {
 
+  const token = req.headers.authorization || ''
   const idParam = req.params.id
   
   try {
 
-    const item = await prisma.item.findFirst({
+    // check that they are signed in
+    const user = await getUserFromToken(token)
+
+    const itemOrder = await prisma.order.findUnique({
       where: {
-        id: Number(idParam)
+        //@ts-ignore
+        itemId: Number(idParam)
       }
     })
 
-    if (item) {
+    const itemBelongsToUser = itemOrder?.userId === user?.id
+      
+    // const item = await prisma.item.findFirst({
+    //   where: {
+    //     id: Number(idParam)
+    //   }
+    // })
 
-      await prisma.item.delete({ 
+    if (itemBelongsToUser && user) {
+
+      const itemDeleted = await prisma.item.delete({ 
         where: { id: Number(idParam) }
       })
 
-      res.send({ message: 'item deleted.' })
+      res.send(itemDeleted)
 
     }
 
     else {
-      res.status(404).send({ error: 'item not found.' })
+      res.status(404).send({ error: 'item not found or doesnt belong to that user.' })
     }
 
   }
